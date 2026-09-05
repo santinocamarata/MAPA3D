@@ -142,8 +142,7 @@ export function createSceneContext(container) {
   }
   resize();
 
-  const resizeObserver = new ResizeObserver(resize);
-  resizeObserver.observe(container);
+  new ResizeObserver(resize).observe(container);
   window.addEventListener('resize', resize);
 
   // -------------------------------------------------------------------- loop
@@ -153,9 +152,7 @@ export function createSceneContext(container) {
     return () => beforeRender.delete(fn);
   }
 
-  let running = true;
   function tick() {
-    if (!running) return;
     requestAnimationFrame(tick);
     controls.update();
     for (const fn of beforeRender) fn();
@@ -186,21 +183,11 @@ export function createSceneContext(container) {
     });
   }
 
-  function dispose() {
-    running = false;
-    resizeObserver.disconnect();
-    window.removeEventListener('resize', resize);
-    controls.dispose();
-    renderer.dispose();
-  }
-
   return {
     scene,
-    world,
     objectRoot,
     camera,
     renderer,
-    labelRenderer,
     controls,
     sun,
     grid,
@@ -209,7 +196,5 @@ export function createSceneContext(container) {
     resetCamera,
     setGridVisible,
     setShadowsEnabled,
-    resize,
-    dispose,
   };
 }

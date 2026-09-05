@@ -9,8 +9,6 @@
  * Ejes: X = este/oeste, Z = norte/sur (Z negativo = norte), Y = altura.
  */
 
-export const METERS = 1;
-
 /** Capas del editor. El orden define el orden de la UI. */
 export const LAYERS = {
   structure: { id: 'structure', label: 'Estructura', color: '#8b95a5' },

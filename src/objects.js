@@ -329,8 +329,6 @@ export const OBJECT_CATALOG = {
   poi: { label: 'Marcador', layer: 'signage', color: '#e0a458', build: (d) => buildPoi(d) },
 };
 
-export const OBJECT_TYPES = Object.keys(OBJECT_CATALOG);
-
 /** Herramientas del panel izquierdo, agrupadas para la UI. */
 export const TOOL_GROUPS = [
   {

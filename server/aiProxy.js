@@ -10,6 +10,8 @@
  *   2. variable de entorno ANTHROPIC_API_KEY (archivo .env)
  */
 
+import { json } from 'node:stream/consumers';
+
 import Anthropic from '@anthropic-ai/sdk';
 import { jsonSchemaOutputFormat } from '@anthropic-ai/sdk/helpers/json-schema';
 
@@ -20,37 +22,12 @@ import {
 } from '../src/ai.js';
 
 const DEFAULT_MODEL = 'claude-sonnet-4-6';
-const MAX_BODY_BYTES = 256 * 1024;
 
 function sendJson(res, status, payload) {
   const body = JSON.stringify(payload);
   res.statusCode = status;
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
   res.end(body);
-}
-
-function readBody(req) {
-  return new Promise((resolve, reject) => {
-    const chunks = [];
-    let size = 0;
-    req.on('data', (chunk) => {
-      size += chunk.length;
-      if (size > MAX_BODY_BYTES) {
-        reject(new Error('El cuerpo del pedido es demasiado grande.'));
-        req.destroy();
-        return;
-      }
-      chunks.push(chunk);
-    });
-    req.on('end', () => {
-      try {
-        resolve(JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}'));
-      } catch (err) {
-        reject(new Error(`JSON inválido en el pedido: ${err.message}`));
-      }
-    });
-    req.on('error', reject);
-  });
 }
 
 /** Traduce errores del SDK a algo que la UI pueda mostrar sin filtrar secretos. */
@@ -90,9 +67,12 @@ async function handle(req, res, env) {
 
   let body;
   try {
-    body = await readBody(req);
-  } catch (err) {
-    sendJson(res, 400, { error: err.message });
+    // ponytail: sin tope de tamaño de cuerpo. Es un proxy de dev en localhost y el
+    // cliente es nuestra propia página. Si esto se porta a un backend público,
+    // el tope va ahí, junto con rate limiting y auth.
+    body = await json(req);
+  } catch {
+    sendJson(res, 400, { error: 'El cuerpo del pedido no es JSON válido.' });
     return;
   }
 
