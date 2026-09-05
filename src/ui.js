@@ -61,7 +61,7 @@ export function createUI({ ctx, editor, onResetScene }) {
       const button = document.createElement('button');
       button.className = 'tool';
       button.type = 'button';
-      button.innerHTML = `<span class="tool-icon">${TOOL_ICONS[type] ?? '▫️'}</span><span class="tool-label">${entry.label}</span>`;
+      button.innerHTML = `<span class="tool-icon" aria-hidden="true">${TOOL_ICONS[type] ?? '▫️'}</span><span class="tool-label">${entry.label}</span>`;
       button.addEventListener('click', () => {
         editor.setMode('select');
         const object = editor.add({ type, position: placementPoint() });
@@ -116,7 +116,10 @@ export function createUI({ ctx, editor, onResetScene }) {
   for (const id of LAYER_IDS) {
     const layer = LAYERS[id];
     const item = document.createElement('li');
-    item.className = 'layer-item';
+    // <label> nativo: da nombre accesible al checkbox y hace que el click en
+    // cualquier parte de la fila lo alterne, sin handler propio.
+    const row = document.createElement('label');
+    row.className = 'layer-item';
 
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
@@ -139,13 +142,8 @@ export function createUI({ ctx, editor, onResetScene }) {
     count.textContent = '0';
     layerCounts[id] = count;
 
-    item.append(checkbox, swatch, name, count);
-    item.addEventListener('click', (event) => {
-      if (event.target !== checkbox) {
-        checkbox.checked = !checkbox.checked;
-        checkbox.dispatchEvent(new Event('change'));
-      }
-    });
+    row.append(checkbox, swatch, name, count);
+    item.appendChild(row);
     layerListEl.appendChild(item);
   }
 
@@ -166,9 +164,12 @@ export function createUI({ ctx, editor, onResetScene }) {
     for (const object of [...editor.objects].reverse()) {
       const { userData: data } = object;
       const item = document.createElement('li');
-      item.className = 'object-item';
-      item.classList.toggle('is-selected', editor.selected === object);
-      item.title = `${data.label} · ${OBJECT_CATALOG[data.type].label}`;
+      // <button> real: alcanzable con Tab y activable con Enter/Espacio.
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'object-item';
+      button.classList.toggle('is-selected', editor.selected === object);
+      button.title = `${data.label} · ${OBJECT_CATALOG[data.type].label}`;
 
       const dot = document.createElement('span');
       dot.className = 'dot';
@@ -182,11 +183,12 @@ export function createUI({ ctx, editor, onResetScene }) {
       type.className = 'type';
       type.textContent = OBJECT_CATALOG[data.type].label;
 
-      item.append(dot, name, type);
-      item.addEventListener('click', () => {
+      button.append(dot, name, type);
+      button.addEventListener('click', () => {
         editor.setMode('select');
         editor.select(object);
       });
+      item.appendChild(button);
       objectListEl.appendChild(item);
     }
 

@@ -11,6 +11,6 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [aiProxyPlugin(env)],
     server: { port: 5173, open: false },
-    build: { outDir: 'dist', sourcemap: true },
+    build: { outDir: 'dist' },
   };
 });

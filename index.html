@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Editor 3D interactivo para mapear el campus de UADE: bloques, patio central, rutas guiadas y marcadores, a escala real." />
     <title>Campus UADE · Editor 3D</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏛️</text></svg>" />
     <link rel="stylesheet" href="/src/styles.css" />
@@ -13,7 +14,7 @@
       <header class="topbar">
         <div class="brand">
           <span class="brand-mark">UADE</span>
-          <span class="brand-text">Editor 3D del Campus</span>
+          <h1 class="brand-text">Editor 3D del Campus</h1>
         </div>
 
         <div class="topbar-group" role="group" aria-label="Modo de transformación">
@@ -43,7 +44,7 @@
 
       <div class="workspace">
         <!-- ------------------------------------------------- sidebar izquierdo -->
-        <aside class="sidebar sidebar-left">
+        <aside class="sidebar sidebar-left" aria-label="Herramientas y capas">
           <section class="panel">
             <h2 class="panel-title">Herramientas</h2>
             <div id="tool-groups"></div>
@@ -53,11 +54,11 @@
             <h2 class="panel-title">Trazado</h2>
             <div class="tool-grid">
               <button class="tool" id="tool-route">
-                <span class="tool-icon">〰️</span>
+                <span class="tool-icon" aria-hidden="true">〰️</span>
                 <span class="tool-label">Ruta</span>
               </button>
               <button class="tool" id="tool-poi">
-                <span class="tool-icon">📍</span>
+                <span class="tool-icon" aria-hidden="true">📍</span>
                 <span class="tool-label">Marcador</span>
               </button>
             </div>
@@ -91,7 +92,7 @@
         </main>
 
         <!-- -------------------------------------------------- sidebar derecho -->
-        <aside class="sidebar sidebar-right">
+        <aside class="sidebar sidebar-right" aria-label="Propiedades y asistente de IA">
           <section class="panel">
             <h2 class="panel-title">Propiedades</h2>
             <div id="properties">

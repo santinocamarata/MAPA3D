@@ -29,6 +29,8 @@ export function createSceneContext(container) {
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 0.98;
   renderer.domElement.classList.add('viewport-canvas');
+  renderer.domElement.setAttribute('role', 'application');
+  renderer.domElement.setAttribute('aria-label', 'Vista 3D del campus UADE');
   container.appendChild(renderer.domElement);
 
   // CSS2DRenderer dibuja las etiquetas de los POIs como HTML por encima del canvas.

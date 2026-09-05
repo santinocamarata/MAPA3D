@@ -9,10 +9,10 @@
   --line: #2a3342;
   --text: #e6ebf2;
   --text-dim: #9aa6b8;
-  --text-faint: #6b7789;
+  --text-faint: #7f8a9c;
   --accent: #4d9de0;
   --accent-soft: rgba(77, 157, 224, 0.16);
-  --danger: #e05d5d;
+  --danger: #e87878;
   --ok: #58c18a;
   --radius: 8px;
   --radius-sm: 6px;
@@ -86,7 +86,7 @@ code { font-family: var(--mono); font-size: 11px; color: var(--accent); }
   color: #fff;
 }
 
-.brand-text { font-weight: 600; letter-spacing: -0.01em; }
+.brand-text { margin: 0; font-size: 13px; font-weight: 600; letter-spacing: -0.01em; }
 
 .topbar-group { display: flex; align-items: center; gap: 6px; }
 .topbar-right { margin-left: auto; }
@@ -231,6 +231,11 @@ code { font-family: var(--mono); font-size: 11px; color: var(--accent); }
 .object-list { flex: 1; overflow-y: auto; margin: -2px -4px; padding: 0 4px; }
 
 .object-item {
+  width: 100%;
+  border: none;
+  background: none;
+  font: inherit;
+  text-align: left;
   display: flex;
   align-items: center;
   gap: 7px;
