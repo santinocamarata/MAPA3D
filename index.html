@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Campus UADE · Editor 3D</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏛️</text></svg>" />
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <!-- ------------------------------------------------------------ topbar -->
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-mark">UADE</span>
+          <span class="brand-text">Editor 3D del Campus</span>
+        </div>
+
+        <div class="topbar-group" role="group" aria-label="Modo de transformación">
+          <button class="btn" data-transform="translate" title="Mover (G)">Mover</button>
+          <button class="btn" data-transform="rotate" title="Rotar (R)">Rotar</button>
+          <button class="btn" data-transform="scale" title="Escalar (S)">Escalar</button>
+        </div>
+
+        <div class="topbar-group">
+          <label class="switch">
+            <input type="checkbox" id="toggle-grid" checked />
+            <span>Grilla</span>
+          </label>
+          <label class="switch">
+            <input type="checkbox" id="toggle-shadows" checked />
+            <span>Sombras</span>
+          </label>
+          <button class="btn" id="btn-reset-camera" title="Volver a la vista aérea inicial">Vista inicial</button>
+        </div>
+
+        <div class="topbar-group topbar-right">
+          <button class="btn" id="btn-export">Exportar JSON</button>
+          <button class="btn" id="btn-import">Importar JSON</button>
+          <button class="btn btn-ghost" id="btn-reset-scene" title="Volver al layout base del campus">Reiniciar</button>
+        </div>
+      </header>
+
+      <div class="workspace">
+        <!-- ------------------------------------------------- sidebar izquierdo -->
+        <aside class="sidebar sidebar-left">
+          <section class="panel">
+            <h2 class="panel-title">Herramientas</h2>
+            <div id="tool-groups"></div>
+          </section>
+
+          <section class="panel">
+            <h2 class="panel-title">Trazado</h2>
+            <div class="tool-grid">
+              <button class="tool" id="tool-route">
+                <span class="tool-icon">〰️</span>
+                <span class="tool-label">Ruta</span>
+              </button>
+              <button class="tool" id="tool-poi">
+                <span class="tool-icon">📍</span>
+                <span class="tool-label">Marcador</span>
+              </button>
+            </div>
+            <p class="hint" id="draft-hint">
+              Click en el piso para agregar puntos. <kbd>Enter</kbd> o doble click para cerrar la ruta,
+              <kbd>Esc</kbd> para cancelar.
+            </p>
+            <div class="draft-actions" id="draft-actions" hidden>
+              <span class="draft-count" id="draft-count">0 puntos</span>
+              <button class="btn btn-sm" id="btn-draft-undo">Deshacer punto</button>
+              <button class="btn btn-sm btn-primary" id="btn-draft-finish">Terminar</button>
+            </div>
+          </section>
+
+          <section class="panel">
+            <h2 class="panel-title">Capas</h2>
+            <ul class="layer-list" id="layer-list"></ul>
+          </section>
+
+          <section class="panel panel-grow">
+            <h2 class="panel-title">
+              Objetos <span class="badge" id="object-count">0</span>
+            </h2>
+            <ul class="object-list" id="object-list"></ul>
+          </section>
+        </aside>
+
+        <!-- ------------------------------------------------------- viewport -->
+        <main class="viewport" id="viewport">
+          <div class="viewport-hud" id="mode-hud" hidden></div>
+        </main>
+
+        <!-- -------------------------------------------------- sidebar derecho -->
+        <aside class="sidebar sidebar-right">
+          <section class="panel">
+            <h2 class="panel-title">Propiedades</h2>
+            <div id="properties">
+              <p class="empty-state">Seleccioná un objeto en el viewport para editarlo.</p>
+            </div>
+          </section>
+
+          <section class="panel panel-grow">
+            <h2 class="panel-title">
+              Asistente IA
+              <button class="icon-btn" id="btn-ai-settings" title="Configurar API key">⚙︎</button>
+            </h2>
+
+            <div class="ai-key" id="ai-key" hidden>
+              <label class="field">
+                <span class="field-label">Anthropic API key</span>
+                <input type="password" id="ai-key-input" placeholder="sk-ant-..." autocomplete="off" />
+              </label>
+              <p class="hint">
+                Se guarda en <code>localStorage</code> de este navegador y viaja sólo al proxy local.
+                Si configuraste <code>ANTHROPIC_API_KEY</code> en <code>.env</code>, dejalo vacío.
+              </p>
+              <button class="btn btn-sm" id="btn-ai-key-save">Guardar key</button>
+            </div>
+
+            <textarea
+              id="ai-prompt"
+              class="ai-input"
+              rows="3"
+              placeholder="Ej: agregá una fuente circular en el centro del patio"
+            ></textarea>
+
+            <div class="ai-actions">
+              <button class="btn btn-primary" id="btn-ai-send">Generar</button>
+              <span class="ai-status" id="ai-status"></span>
+            </div>
+
+            <div class="ai-examples">
+              <button class="chip" data-prompt="Agregá una fuente circular en el centro del patio">Fuente central</button>
+              <button class="chip" data-prompt="Trazá una ruta desde la entrada Lima hasta Labs">Ruta Lima → Labs</button>
+              <button class="chip" data-prompt="Poné una hilera de 6 árboles a lo largo del lado oeste del patio">Arbolado oeste</button>
+              <button class="chip" data-prompt="Marcá con POIs las cuatro entradas del campus">POIs de entradas</button>
+            </div>
+
+            <div class="ai-log" id="ai-log"></div>
+          </section>
+        </aside>
+      </div>
+
+      <footer class="statusbar">
+        <span id="status-message">Listo. Escala 1 unidad = 1 metro.</span>
+        <span class="statusbar-right">
+          <kbd>G</kbd> mover · <kbd>R</kbd> rotar · <kbd>S</kbd> escalar · <kbd>Supr</kbd> borrar · <kbd>Esc</kbd> deseleccionar
+        </span>
+      </footer>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
