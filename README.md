@@ -35,10 +35,13 @@ a `api.anthropic.com` directamente y la key no entra al bundle.
 ```
 index.html            shell de la UI (topbar, sidebars, viewport)
 vite.config.js        config + montaje del proxy de IA
+tools/
+  build-campus.py     genera campus-data.js desde un volcado de OpenStreetMap
 server/
   aiProxy.js          plugin de Vite: expone POST /api/ai y llama a Claude con el SDK oficial
 src/
   main.js             entry point: arma escena + editor + UI y siembra el campus
+  campus-data.js      GENERADO: contorno real de la parcela desde OpenStreetMap
   config.js           constantes espaciales del campus (JS puro, sin Three.js)
   scene.js            escena, cámara orbital, luces, sombras, piso, grilla, renderers
   objects.js          catálogo de objetos y factory functions (incluye rutas y marcadores)
@@ -55,14 +58,39 @@ recibe Claude nunca se desincroniza de lo que se está renderizando.
 
 ## Escena base
 
-Cinco bloques perimetrales grises (**Lima**, **Chile**, **Independencia**, **Salta**
-y **Labs**) rodean un patio central abierto de **60 × 44 m** centrado en el origen.
-El patio tiene un plano verde, un `GridHelper` de 2 m por división (ocultable desde
-la topbar) y marcadores en las cuatro entradas.
+La planta **no está inventada**: sale del contorno real de la parcela de UADE en
+OpenStreetMap (`way/190536039`, `amenity=university`, Lima 775, CABA). Datos ©
+colaboradores de OpenStreetMap, [ODbL 1.0](https://osm.org/copyright).
 
-La iluminación es una `DirectionalLight` que simula el sol, con
+- Parcela de **10.824 m²**, 20 vértices, 120 × 118 m.
+- Cuatro alas nombradas por la calle que enfrentan, con los lados que dice OSM:
+  **Lima** al este, **Chile** al norte, **Salta** al oeste y
+  **Av. Independencia** al sur.
+- 18 volúmenes, uno por arista de la parcela: cada uno se apoya sobre el borde
+  real y crece 20 m hacia adentro.
+- El **patio de 63 × 74 m** no está dibujado a mano: es lo que queda libre al
+  descontar la crujía perimetral del contorno.
+- `GridHelper` de 2 m por división sobre el patio, ocultable desde la topbar.
+
+Iluminación: una `DirectionalLight` que simula el sol, con
 `renderer.shadowMap.enabled = true` y `castShadow`/`receiveShadow` en todos los
 objetos.
+
+### Lo único estimado: las alturas
+
+Ningún edificio de la parcela tiene `building:levels` cargado en OSM, así que las
+alturas de `WING_HEIGHTS` (`src/config.js`) son valores plausibles, no medidos.
+Es el número a corregir con fotos o con la cantidad real de pisos; todo lo demás
+de la planta viene del dato.
+
+### Regenerar la planta
+
+```bash
+curl "https://api.openstreetmap.org/api/0.6/map?bbox=-58.3840,-34.6195,-58.3792,-34.6155" -o map.osm
+python3 tools/build-campus.py map.osm src/campus-data.js
+```
+
+`src/campus-data.js` es generado y no se edita a mano.
 
 ## Uso
 

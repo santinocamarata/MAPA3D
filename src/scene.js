@@ -9,7 +9,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { CSS2DRenderer } from 'three/addons/renderers/CSS2DRenderer.js';
 
-import { CAMERA_HOME, GROUND, PATIO } from './config.js';
+import { CAMERA_HOME, GROUND, PARCEL, PATIO } from './config.js';
 
 /**
  * Construye el contexto de render completo.
@@ -94,21 +94,26 @@ export function createSceneContext(container) {
   pavement.userData.pickable = false;
   world.add(pavement);
 
-  // Plano verde del patio central, apenas elevado para no pelearse con el pavimento.
+  // Suelo de la parcela, con el contorno real de OSM. Lo que queda a la vista
+  // entre los bloques perimetrales ES el patio: no hace falta dibujarlo aparte.
+  // La Shape se arma con (x, -z) y se acuesta con -90° en X, de modo que su
+  // normal quede hacia arriba y el mapeo a mundo sea (x, 0, z).
+  const parcelShape = new THREE.Shape(PARCEL.map((p) => new THREE.Vector2(p.x, -p.z)));
   const patio = new THREE.Mesh(
-    new THREE.PlaneGeometry(PATIO.width, PATIO.depth),
+    new THREE.ShapeGeometry(parcelShape),
     new THREE.MeshStandardMaterial({ color: GROUND.patioColor, roughness: 0.9, metalness: 0 }),
   );
   patio.rotation.x = -Math.PI / 2;
-  patio.position.set(PATIO.center.x, 0.02, PATIO.center.z);
+  patio.position.y = 0.02; // apenas sobre el pavimento, para no pelear el z-buffer
   patio.receiveShadow = true;
-  patio.name = 'patio';
+  patio.name = 'parcela';
   patio.userData.pickable = false;
   world.add(patio);
 
   // ------------------------------------------------------------------ grilla
   // Divisiones de 2 m: referencia de escala real sin producir muaré al alejarse.
-  const grid = new THREE.GridHelper(PATIO.width, PATIO.width / 2, '#a9c6d6', '#7b95a6');
+  const gridSize = Math.max(PATIO.width, PATIO.depth);
+  const grid = new THREE.GridHelper(gridSize, gridSize / 2, '#a9c6d6', '#7b95a6');
   grid.position.set(PATIO.center.x, 0.04, PATIO.center.z);
   grid.material.transparent = true;
   grid.material.opacity = 0.3;

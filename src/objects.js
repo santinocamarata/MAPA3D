@@ -14,7 +14,15 @@
 import * as THREE from 'three';
 import { CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 
-import { CAMPUS_BLOCKS, LAYERS, ROUTE_HEIGHT, ROUTE_WIDTH } from './config.js';
+import {
+  BUILDING_DEPTH,
+  LAYERS,
+  PERIMETER_SEGMENTS,
+  ROUTE_HEIGHT,
+  ROUTE_WIDTH,
+  WINGS,
+  WING_HEIGHTS,
+} from './config.js';
 
 let idCounter = 0;
 export function nextId(prefix = 'obj') {
@@ -449,24 +457,32 @@ export function disposeSubtree(object) {
   });
 }
 
-/** Definiciones de los bloques base del campus UADE. */
+/**
+ * Definiciones de los bloques base del campus.
+ *
+ * Cada arista de la parcela real se levanta como una caja apoyada sobre ese
+ * borde y con la profundidad de crujía hacia adentro. La posición y el largo
+ * vienen de OpenStreetMap; la altura es la estimación de WING_HEIGHTS.
+ */
 export function campusBlockDefinitions() {
-  const defs = [];
-  for (const block of CAMPUS_BLOCKS) {
-    block.volumes.forEach((volume, index) => {
-      const [width, height, depth] = volume.footprint;
-      defs.push({
-        id: `campus-${block.id}-${index}`,
-        type: 'building',
-        layer: 'structure',
-        // Variación sutil de gris para que los volúmenes se lean separados.
-        color: index === 0 ? '#8b95a5' : '#79838f',
-        label: block.volumes.length > 1 ? `${block.name} (vol. ${index + 1})` : block.name,
-        position: { x: volume.position.x, y: 0, z: volume.position.z },
-        scale: { x: width, y: height, z: depth },
-        rotation: { y: 0 },
-      });
-    });
-  }
-  return defs;
+  const perWing = {};
+
+  return PERIMETER_SEGMENTS.map((segment) => {
+    const wing = WINGS[segment.wing];
+    perWing[segment.wing] = (perWing[segment.wing] ?? 0) + 1;
+    const index = perWing[segment.wing];
+
+    return {
+      id: `campus-${segment.wing}-${index}`,
+      type: 'building',
+      layer: 'structure',
+      // Alternar dos grises deja leer dónde termina un volumen y empieza el otro.
+      color: index % 2 ? '#8b95a5' : '#79838f',
+      label: `${wing.name} ${index}`,
+      position: { x: segment.x, y: 0, z: segment.z },
+      scale: { x: segment.length, y: WING_HEIGHTS[segment.wing], z: BUILDING_DEPTH },
+      // La caja se orienta a lo largo de la arista: su +X local sigue el borde.
+      rotation: { y: -segment.angle },
+    };
+  });
 }

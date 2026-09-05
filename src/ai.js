@@ -9,7 +9,7 @@
  *   - El proxy es el único que ve la API key y hace la llamada con el SDK oficial.
  */
 
-import { CAMPUS_BLOCKS, LANDMARKS, LAYERS, PATIO, ROUTE_WIDTH } from './config.js';
+import { LANDMARKS, LAYERS, PATIO, PERIMETER_SEGMENTS, ROUTE_WIDTH, WINGS, WING_HEIGHTS } from './config.js';
 
 export const AI_ENDPOINT = '/api/ai';
 export const API_KEY_STORAGE = 'uade3d.anthropic-key';
@@ -97,18 +97,15 @@ const NATURAL_SIZES = {
 };
 
 function describeBlocks() {
-  return CAMPUS_BLOCKS.map((block) => {
-    const volumes = block.volumes
-      .map(({ footprint, position }) => {
-        const [w, h, d] = footprint;
-        const x1 = position.x - w / 2;
-        const x2 = position.x + w / 2;
-        const z1 = position.z - d / 2;
-        const z2 = position.z + d / 2;
-        return `centro (x=${position.x}, z=${position.z}), ${w}×${d} m en planta, ${h} m de alto, ocupa x∈[${x1}, ${x2}] z∈[${z1}, ${z2}]`;
-      })
-      .join('; ');
-    return `- ${block.name}: ${block.description} Volúmenes: ${volumes}.`;
+  return Object.values(WINGS).map((wing) => {
+    const segments = PERIMETER_SEGMENTS.filter((s) => s.wing === wing.id);
+    const xs = segments.map((s) => s.x);
+    const zs = segments.map((s) => s.z);
+    const frente = segments.reduce((total, s) => total + s.length, 0);
+    return `- ${wing.name}: ala ${wing.side}, sobre ${wing.street}. ${segments.length} volúmenes, `
+      + `${Math.round(frente)} m de frente, ${WING_HEIGHTS[wing.id]} m de alto, `
+      + `ocupa x∈[${Math.min(...xs).toFixed(0)}, ${Math.max(...xs).toFixed(0)}] `
+      + `z∈[${Math.min(...zs).toFixed(0)}, ${Math.max(...zs).toFixed(0)}].`;
   }).join('\n');
 }
 
