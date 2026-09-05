@@ -94,9 +94,28 @@ export function applyScene(data, editor, ctx) {
   return { count: created.length };
 }
 
-/** Dispara la descarga del JSON en el navegador. */
-export function downloadScene(data, filename = 'campus-uade.json') {
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+/**
+ * Guarda el JSON de la escena.
+ *
+ * En el visor de artifacts de claude.ai la página no puede bajar archivos por su
+ * cuenta: el guardado pasa por la capability `downloads`. Corriendo local esa
+ * capability no existe y se usa el <a download> de siempre.
+ */
+export async function downloadScene(data, filename = 'campus-uade.json') {
+  const json = JSON.stringify(data, null, 2);
+
+  let downloads = null;
+  try {
+    downloads = (await window.claude?.use?.('downloads')) ?? null;
+  } catch {
+    downloads = null; // sin capability: seguimos por el camino local
+  }
+  if (downloads) {
+    await downloads.save({ filename, data: json });
+    return;
+  }
+
+  const blob = new Blob([json], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;

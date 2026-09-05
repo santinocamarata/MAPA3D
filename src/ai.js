@@ -299,7 +299,12 @@ export async function requestObjects(prompt, context, { signal } = {}) {
   const payload = await response.json().catch(() => null);
 
   if (!response.ok) {
-    const detail = payload?.error || `HTTP ${response.status}`;
+    // Sin payload JSON el endpoint no es nuestro proxy: pasa al servir el build
+    // estático sin backend. Decirlo es más útil que mostrar el código HTTP.
+    const detail = payload?.error
+      || (payload === null
+        ? 'El proxy de IA no está disponible en este host. Corré `npm run dev` para usar el asistente.'
+        : `HTTP ${response.status}`);
     const error = new Error(detail);
     error.status = response.status;
     error.needsKey = payload?.needsKey === true;

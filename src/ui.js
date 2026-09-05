@@ -448,10 +448,17 @@ export function createUI({ ctx, editor, onResetScene }) {
   });
   $('#btn-reset-camera').addEventListener('click', () => ctx.resetCamera());
 
-  $('#btn-export').addEventListener('click', () => {
+  $('#btn-export').addEventListener('click', async () => {
     const data = serializeScene(editor, ctx);
-    downloadScene(data, `campus-uade-${new Date().toISOString().slice(0, 10)}.json`);
-    setStatus(`Escena exportada: ${data.objects.length} objetos.`);
+    try {
+      await downloadScene(data, `campus-uade-${new Date().toISOString().slice(0, 10)}.json`);
+      setStatus(`Escena exportada: ${data.objects.length} objetos.`);
+    } catch (err) {
+      // 'declined' es el visor diciendo que no: no es un error que reportar.
+      setStatus(err?.code === 'declined'
+        ? 'Exportación cancelada.'
+        : `No se pudo exportar: ${err?.message ?? err}`, { sticky: err?.code !== 'declined' });
+    }
   });
 
   $('#btn-import').addEventListener('click', async () => {
