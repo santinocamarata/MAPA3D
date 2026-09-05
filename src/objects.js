@@ -298,7 +298,7 @@ function buildPoi(def) {
 
   const element = document.createElement('div');
   element.className = 'poi-label';
-  element.textContent = def.label || 'POI';
+  element.textContent = def.label;
   const label = new CSS2DObject(element);
   label.position.set(0, 2.6, 0);
   label.name = 'poi-label';
@@ -377,16 +377,22 @@ export function createObject(def = {}) {
     }))
     : undefined;
 
-  const resolved = { ...def, type, color, layer, routePoints };
+  // El label se resuelve una sola vez: el builder (p. ej. la etiqueta CSS2D del
+  // POI) y userData tienen que mostrar exactamente el mismo texto.
+  const label = typeof def.label === 'string' && def.label.trim()
+    ? def.label.trim()
+    : entry.label;
+
+  const resolved = { ...def, type, color, layer, label, routePoints };
   const object = entry.build(resolved);
 
-  object.name = def.label || entry.label;
+  object.name = label;
   object.userData = {
     id: def.id || nextId(type),
     type,
     layer,
     color,
-    label: def.label || entry.label,
+    label,
     pickable: true,
   };
 

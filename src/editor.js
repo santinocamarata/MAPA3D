@@ -16,6 +16,7 @@ import {
 } from './objects.js';
 
 const CLICK_DRAG_TOLERANCE = 5; // px: por encima de esto, el gesto fue orbitar
+const DRAFT_BUFFER_POINTS = 256; // capacidad inicial del buffer de la vista previa
 
 export class Editor {
   constructor(ctx) {
@@ -94,7 +95,10 @@ export class Editor {
     this.draftPoints = [];
 
     const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(3 * 256), 3));
+    geometry.setAttribute(
+      'position',
+      new THREE.BufferAttribute(new Float32Array(DRAFT_BUFFER_POINTS * 3), 3),
+    );
     const line = new THREE.Line(
       geometry,
       new THREE.LineBasicMaterial({ color: '#7fd1ff', depthTest: false, transparent: true, opacity: 0.95 }),
@@ -247,10 +251,6 @@ export class Editor {
     this.emit('selection', this.selected);
   }
 
-  selectById(id) {
-    this.select(this.objects.find((object) => object.userData.id === id) ?? null);
-  }
-
   // --------------------------------------------------------- CRUD objetos
   /** Crea y agrega un objeto a la escena. */
   add(def) {
@@ -323,8 +323,9 @@ export class Editor {
     }
 
     this.outline.setFromObject(object);
+    // Sólo 'change': emitir 'selection' haría que la UI reconstruyera el panel de
+    // propiedades en cada pulsación, destruyendo el input que se está tipeando.
     this.emit('change', { type: 'update', object });
-    this.emit('selection', object);
   }
 
   // -------------------------------------------------------------- capas
@@ -391,9 +392,19 @@ export class Editor {
   #refreshDraft() {
     const points = this.draftPoints;
     const line = this.draftLine;
-    const positions = line.geometry.attributes.position;
 
-    const count = Math.min(points.length, positions.count);
+    // El buffer crece si hace falta: truncar dejaría la vista previa mostrando
+    // menos tramos de los que la ruta realmente tiene.
+    if (points.length > line.geometry.attributes.position.count) {
+      const capacity = Math.max(points.length * 2, DRAFT_BUFFER_POINTS);
+      line.geometry.setAttribute(
+        'position',
+        new THREE.BufferAttribute(new Float32Array(capacity * 3), 3),
+      );
+    }
+
+    const positions = line.geometry.attributes.position;
+    const count = points.length;
     for (let i = 0; i < count; i += 1) {
       positions.setXYZ(i, points[i].x, ROUTE_HEIGHT + 0.05, points[i].z);
     }
