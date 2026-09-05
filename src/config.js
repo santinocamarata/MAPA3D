@@ -50,16 +50,26 @@ export const WINGS = {
 };
 
 /**
- * ALTURAS ESTIMADAS, en metros. Este es el único dato que NO viene de OSM:
- * ningún edificio de la parcela tiene `building:levels` cargado. Son valores
- * plausibles para un campus urbano de esta escala, puestos para que la escena
- * se lea. Ajustar con fotos o con la cantidad real de pisos.
+ * Alturas de cada ala, en metros. OSM no trae `building:levels` en esta parcela,
+ * así que salen de fuentes publicadas sobre el campus. Cada una lleva su origen
+ * y su grado de confianza: son la parte menos firme del modelo.
+ *
+ * Se asume 3,5 m de piso a piso, típico de aulas universitarias.
  */
 export const WING_HEIGHTS = {
-  lima: 34,
-  chile: 28,
-  salta: 24,
-  independencia: 30,
+  // DATO. El edificio nuevo sobre Av. Independencia 1153 tiene cuatro subsuelos,
+  // planta baja y doce pisos (8.500 m²). PB + 12 x 3,5 m ≈ 45 m.
+  independencia: 45,
+
+  // INFERIDO. La ficha del edificio dice que "iguala la altura de los edificios
+  // existentes", que son los cuerpos sobre Chile y Salta.
+  chile: 42,
+  salta: 42,
+
+  // INFERIDO. La nota de arquitectura contrapone el edificio alto de
+  // Independencia con "el cuerpo más bajo y extendido sobre la 9 de Julio";
+  // Lima es la calle lateral de la 9 de Julio en ese tramo. ~7 niveles.
+  lima: 26,
 };
 
 /**

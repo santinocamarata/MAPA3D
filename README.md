@@ -76,12 +76,34 @@ Iluminación: una `DirectionalLight` que simula el sol, con
 `renderer.shadowMap.enabled = true` y `castShadow`/`receiveShadow` en todos los
 objetos.
 
-### Lo único estimado: las alturas
+### Alturas: de dónde salen
 
-Ningún edificio de la parcela tiene `building:levels` cargado en OSM, así que las
-alturas de `WING_HEIGHTS` (`src/config.js`) son valores plausibles, no medidos.
-Es el número a corregir con fotos o con la cantidad real de pisos; todo lo demás
-de la planta viene del dato.
+OSM no trae `building:levels` en esta parcela (2 de 188 edificios del área lo
+tienen), así que las alturas de `WING_HEIGHTS` (`src/config.js`) vienen de
+fuentes publicadas. Es la parte menos firme del modelo, y cada valor lleva su
+origen anotado en el código:
+
+| Ala | Altura | Origen |
+| --- | --- | --- |
+| Independencia | 45 m | **Dato.** El edificio de Av. Independencia 1153 tiene 4 subsuelos, PB y 12 pisos (8.500 m²) |
+| Chile / Salta | 42 m | **Inferido.** La ficha dice que ese edificio "iguala la altura de los edificios existentes" |
+| Lima | 26 m | **Inferido.** Se describe "el cuerpo más bajo y extendido sobre la 9 de Julio"; Lima es su calle lateral |
+
+Se asume 3,5 m de piso a piso. Con la cantidad real de pisos de cada cuerpo,
+estos cuatro números se corrigen en un minuto.
+
+Dos validaciones cruzadas del contorno, que sí es dato firme:
+
+- El estudio autor del campus declara **10.500 m²**; la parcela de OSM mide
+  **10.824 m²** (3% de diferencia).
+- Las notas de arquitectura describen "el gran patio interno que nuclea todos
+  los cuerpos del conjunto", que es justo lo que aparece al descontar la crujía
+  perimetral del contorno.
+
+Fuentes: [Arquimaster](https://www.arquimaster.com.ar/web/criba-edifica-la-nueva-etapa-del-campus-universitario-de-uade/) ·
+[La Nación](https://www.lanacion.com.ar/arquitectura/uade-nid206636/) ·
+[Gastón Flores Arquitecto](https://www.gastonflores.com/en/campus-uade) ·
+[ArchDaily](https://www.archdaily.com/1010800/campus-uade-main-building-oficina-urbana-converti-plus-de-marco-arquitectos)
 
 ### Regenerar la planta
 
